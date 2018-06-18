@@ -1,0 +1,434 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<section>
+	<div class="container">
+		<div class="row">
+			<div class="col-xs-12">
+				<div class="w3-card-4" >
+					<header class="w3-container w3-light-grey">
+						<h3 class="pull-left">{{deviceInfo['nickname']|safe}}</h3>
+					</header>
+					<div class="w3-container">
+						<div class="panel-group">
+							<div class="panel">	
+								<div class="panel-body">
+									<div class="row">
+										<div class="col-xs-9">
+											<div class="row">
+												<div class="col-xs-3"><strong><span class="pull-right">Hostname</span></strong></div>
+												<div class="col-xs-9">{{deviceInfo['hostname']|safe}}</div>
+											</div>
+											<div class="row">
+												<div class="col-xs-3"><strong><span class="pull-right">Nickname</span></strong></div>
+												<div class="col-xs-9">{{deviceInfo['nickname']|safe}} <span data-toggle="modal" data-target="#renameDeviceModal" style="cursor: pointer;"><span class="glyphicon glyphicon-edit" ></span></span></div>
+											</div>
+											<div class="row">
+												<div class="col-xs-3"><strong><span class="pull-right">IP Address</span></strong></div>
+												<div class="col-xs-9">{{deviceInfo['ip']|safe}}</div>
+											</div>
+											<div class="row">
+												<div class="col-xs-3"><strong><span class="pull-right">MAC Address</span></strong></div>
+												<div class="col-xs-9">{{deviceInfo['mac']|safe}}</div>
+											</div>
+											<div class="row">
+												<div class="col-xs-3"><strong><span class="pull-right">Vendor</span></strong></div>
+												<div class="col-xs-9">{{deviceInfo['vendor']|safe}}</div>
+											</div>
+											<div class="row">
+												<div class="col-xs-3"><strong><span class="pull-right">First Seen</span></strong></div>
+												<div class="col-xs-9">{{deviceInfo['firstSeen']|safe}}</div>
+											</div>
+											<div class="row">
+												<div class="col-xs-3"><strong><span class="pull-right">Last Seen</span></strong></div>
+												<div class="col-xs-9">{{deviceInfo['lastSeen']|safe}}</div>
+											</div>
+                                            <div class="row">
+                                                <div class="col-xs-3"><strong><span class="pull-right">Isolate Device</span></strong></div>
+                                                <div class="col-xs-9">{% if deviceInfo['isolate'] == '0'%}<input type="checkbox" onchange="isolateDevice(this,'{{deviceInfo['mac']}}','1')" >&nbsp;No{%else%}<input type="checkbox" checked onchange="isolateDevice(this,'{{deviceInfo['mac']}}','0')" >&nbsp;Yes{%endif%}</div>
+                                            </div>
+											<div class="row">
+												<div class="col-xs-3"><strong><span class="pull-right">Device Monitored</span></strong></div>
+												<div class="col-xs-9">
+													<label class="switch">
+						
+{% if deviceInfo['ignore'] == '1' %}
+														<input type="checkbox" onchange="ignoreDevice(this,'{{deviceInfo['mac']}}','0')" >
+{% else %}
+														<input type="checkbox" checked onchange="ignoreDevice(this,'{{deviceInfo['mac']}}','1')" >
+{% endif %}
+														<div class="slider round"></div>
+													</label>
+											</div>
+										</div>
+
+									</div>
+								</div>
+							</div>
+						</div>
+
+
+
+
+
+						<div class="panel-group">
+							<div class="panel panel-primary">
+								<div class="panel-heading">Firewall Config ({{deviceInfo['fwList']|length}})<a data-toggle="collapse" href="#firewallPanel" class="pull-right"><span class="glyphicon glyphicon-plus"></span></a></div>
+								<div id="firewallPanel" class="panel-collapse collapse">
+									<div class="panel-body">
+										<div class="row" style="border-bottom: 2px solid #000;">
+											<div class="col-xs-4"><b>Destination</b></div>
+											<div class="col-xs-4"><b>Action</b></div>
+											<div class="col-xs-4">&nbsp;</div>
+										</div>
+{% for entry in deviceInfo['fwList'] %}
+										<div class="row" style="border-bottom: 1px solid #ccc;">
+											<div class="col-xs-4">{{entry['destination']}}</div>
+											<div class="col-xs-4">{{entry['action']}}</div>
+											<div class="col-xs-4"><button type="button" class="btn btn-danger btn-sm" onclick="deleteFW('{{entry['destination']}}')">Delete</button></div>
+										</div>
+{% endfor %}
+										<div class="row" style="border-bottom: 1px solid #ccc;">
+											<div class="col-xs-4">All</div>
+											<div class="col-xs-4">{{deviceInfo['defaultFwAction']}}</div>
+											<div class="col-xs-4"><button type="button" class="btn btn-info btn-sm" data-toggle="modal" data-target="#updateDefaultFwModal">Edit</button></div>
+										</div>
+										<br />
+										<button type="button" class="btn btn-success btn-sm" data-toggle="modal" data-target="#addFwModal">Add Firewall Entry</button>
+									</div>
+								</div>
+							</div>
+						</div>
+
+
+						<div class="panel-group">
+							<div class="panel panel-primary">
+							<div class="panel-heading">Alerts ({{alerts|length}})<a data-toggle="collapse" href="#blockedTrafficPanel" class="pull-right"><span class="glyphicon glyphicon-plus"></span></a></div>
+								<div id="blockedTrafficPanel" class="panel-collapse collapse">
+									<div class="panel-body">
+										<div class="row" style="border-bottom: 2px solid #000;">
+											<div class="col-xs-3"><b>Source</b></div>
+											<div class="col-xs-3"><b>Message</b></div>
+											<div class="col-xs-3"><b>Date</b></div>
+											<div class="col-xs-3"><b>&nbsp;</b></div>
+										</div>
+{% for alert in alerts %}
+										<div class="row" style="border-bottom: 2px solid #000;">
+											<div class="col-xs-3">{{alert['_source']['source']|safe}}</div>
+											<div class="col-xs-3">{{alert['_source']['message']|safe}}</div>
+											<div class="col-xs-3">{{alert['_source']['firstSeen']|safe}}</div>
+											<div class="col-xs-3"><button type="button" class="btn btn-primary btn-xs" onclick="addressAlert(this,'{{alert['_id']}}')">Delete</button></div>
+										</div>
+{% endfor %}
+									</div>
+								</div>
+							</div>
+						</div>
+
+
+
+						<div class="panel-group">
+							<div class="panel panel-primary">
+								<div class="panel-heading">Open Ports ({{deviceInfo['portList']|length}})<a data-toggle="collapse" href="#portPanel" class="pull-right"><span class="glyphicon glyphicon-plus"></span></a></div>
+									<div id="portPanel" class="panel-collapse collapse">
+									<div class="panel-body">
+										<p>Last Port Scan: {{deviceInfo['lastPortScan']}}</p>
+										<div class="row" style="border-bottom: 2px solid #000;">
+											<div class="col-xs-2"><b>Port</b></div>
+											<div class="col-xs-2"><b>Protocol</b></div>
+											<div class="col-xs-2"><b>Name</b></div>
+											<div class="col-xs-2"><b>Product</b></div>
+											<div class="col-xs-2"><b>Version</b></div>
+											<div class="col-xs-2"><b>Last Seen</b></div>
+										</div>
+{% for port in deviceInfo['portList'] %}
+										<div class="row" style="border-bottom: 1px solid #ccc;">
+											<div class="col-xs-2">{{ port['port'] }}</div>
+											<div class="col-xs-2">{{ port['protocol'] }}</div>
+											<div class="col-xs-2">{{ port['name'] }}</div>
+											<div class="col-xs-2">{{ port['product'] }}</div>
+											<div class="col-xs-2">{{ port['version'] }}</div>
+											<div class="col-xs-2">{{ port['lastSeen'] }}</div>
+										</div>
+{% endfor %}
+									</div>
+								</div>
+							</div>
+						</div>
+
+
+
+						<div class="panel-group">
+							<div class="panel panel-primary">
+								<div class="panel-heading">Baseline Info ({{baseline|length}})<a data-toggle="collapse" href="#baselinePanel" class="pull-right"><span class="glyphicon glyphicon-plus"></span></a></div>
+									<div id="baselinePanel" class="panel-collapse collapse">
+									<div class="panel-body">
+										<div class="row" style="border-bottom: 2px solid #000;">
+											<div class="col-xs-3"><b>Type</b></div>
+											<div class="col-xs-9"><b>Value</b></div>
+										</div>
+{% for entry in baseline %}
+										<div class="row" style="border-bottom: 1px solid #ccc;">
+											<div class="col-xs-3">{{ entry['type']|safe }}</div>
+											<div class="col-xs-9">{{ entry['value']|safe }}</div>
+										</div>
+{% endfor %}
+									</div>
+								</div>
+							</div>
+						</div>
+
+
+
+<button type="button" class="btn btn-danger btn-lg" data-toggle="modal" data-target="#deleteDeviceModal">Delete Device</button>
+
+
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+
+<div id="renameDeviceModal" class="modal fade" role="dialog">
+  <div class="modal-dialog">
+    <!-- Modal content-->
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal">&times;</button>
+        <h4 class="modal-title">Rename Device</h4>
+      </div>
+      <div class="modal-body">
+        <p>Hostname: {{deviceInfo['hostname']|safe}}</p>
+        <p>Previous Name: {{deviceInfo['nickname']|safe}}</p>
+        <p><form id="renameDevice" action="/renameDevice" method="post">
+             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+             <input name="macAddress" type=hidden value="{{deviceInfo['mac']}}">
+             <input class="form-control" id="nickName" name="nickName" type="text" placeholder="New Name">
+           </form>
+         </p>
+      </div>
+      <div class="modal-footer">
+        <div class="row">
+          <div class="col-xs-4">
+              <button form="renameDevice" type="submit" class="btn btn-default center-block">Save</button>
+          </div>
+          <div class="col-xs-4">
+          </div>
+          <div class="col-xs-4">
+            <button type="button" class="btn btn-default center-block" data-dismiss="modal">Cancel</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="deleteDeviceModal" class="modal fade" role="dialog">
+  <div class="modal-dialog">
+    <!-- Modal content-->
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal">&times;</button>
+        <h4 class="modal-title">Delete Device</h4>
+      </div>
+      <div class="modal-body">
+        <p>Are you sure you want to delete this device?</p>
+      </div>
+      <div class="modal-footer">
+        <div class="row">
+          <div class="col-xs-4">
+              <button onClick="deleteDevice()" type="submit" class="btn btn-danger center-block">Delete</button>
+          </div>
+          <div class="col-xs-4">
+          </div>
+          <div class="col-xs-4">
+            <button type="button" class="btn btn-default center-block" data-dismiss="modal">Cancel</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="addFwModal" class="modal fade" role="dialog">
+  <div class="modal-dialog">
+    <!-- Modal content-->
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal">&times;</button>
+        <h4 class="modal-title">Add Firewall Entry</h4>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label for="destination">IP/Hostname:</label>
+          <input type="text" class="form-control" id="destination">
+          <p>*Hostnames will be converted into IP Addresses</p>
+        </div>
+        <div class="radio">
+          <label><input id="action" type="radio" checked name="actionradio">ACCEPT</label>
+        </div>
+        <div class="radio">
+          <label><input type="radio" name="actionradio">DROP</label>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <div class="row">
+          <div class="col-xs-4">
+              <button onClick="updateFW()" type="submit" class="btn btn-success center-block">Add</button>
+          </div>
+          <div class="col-xs-4">
+          </div>
+          <div class="col-xs-4">
+            <button type="button" class="btn btn-default center-block" data-dismiss="modal">Cancel</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="updateDefaultFwModal" class="modal fade" role="dialog">
+  <div class="modal-dialog">
+    <!-- Modal content-->
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal">&times;</button>
+        <h4 class="modal-title">Update Default Firewall Action</h4>
+      </div>
+      <div class="modal-body">
+        <div class="radio">
+          <label><input id="defaultaction" type="radio" checked name="actionradio">ACCEPT</label>
+        </div>
+        <div class="radio">
+          <label><input type="radio" name="actionradio">DROP</label>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <div class="row">
+          <div class="col-xs-4">
+              <button onClick="updateDefaultFW()" type="submit" class="btn btn-success center-block">Save</button>
+          </div>
+          <div class="col-xs-4">
+          </div>
+          <div class="col-xs-4">
+            <button type="button" class="btn btn-default center-block" data-dismiss="modal">Cancel</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+function ignoreDevice(checkboxElem,macAddress,ignored) {
+  $.post('/ignoreDevice',
+      { 
+        'macAddress': macAddress,
+        'ignored': ignored,
+        'csrf_token': '{{ csrf_token() }}'
+      },
+      function (response, status) {
+        window.location.reload();
+      }
+    );
+}
+
+function deleteDevice() {
+  
+  $.post('/deleteDevice',
+      { 
+        'macAddress': '{{deviceInfo['mac']}}',
+        'csrf_token': '{{ csrf_token() }}'
+      },
+      function (response, status) {
+          document.location = "/";
+      }
+    );
+
+}
+
+function updateDefaultFW() {
+  $.post('/updateFW',
+      {
+        'macAddress': '{{deviceInfo['mac']}}',
+        'destination': '*',
+        'action': document.getElementById("defaultaction").checked,
+        'csrf_token': '{{ csrf_token() }}'
+      },
+      function (response, status) {
+          window.location.reload();
+      }
+    );
+}
+
+function addFWRule(destination) {
+  $.post('/updateFW',
+      {
+        'macAddress': '{{deviceInfo['mac']}}',
+        'destination': destination,
+        'action': 'true',
+        'csrf_token': '{{ csrf_token() }}'
+      },
+      function (response, status) {
+          window.location.reload();
+      }
+    );
+}
+
+function updateFW() {
+  $.post('/updateFW',
+      {
+        'macAddress': '{{deviceInfo['mac']}}',
+        'destination': document.getElementById("destination").value,
+        'action': document.getElementById("action").checked,
+        'csrf_token': '{{ csrf_token() }}'
+      },
+      function (response, status) {
+          window.location.reload();
+      }
+    );
+}
+
+function deleteFW(destination) {
+  $.post('/deleteFW',
+      {
+        'macAddress': '{{deviceInfo['mac']}}',
+        'destination': destination,
+        'csrf_token': '{{ csrf_token() }}'
+      },
+      function (response, status) {
+          window.location.reload();
+      }
+    );
+}
+
+function isolateDevice(checkboxElem,macAddress,isolate) {
+  $.post('/isolateDevice',
+      {
+        'macAddress': macAddress,
+        'isolate': isolate,
+        'csrf_token': '{{ csrf_token() }}'
+      },
+      function (response, status) {
+        window.location.reload();
+      }
+    );
+}
+
+function addressAlert(checkboxElem,logID) {
+  $.post('/alerts/address',
+      { 
+        'logID': logID,
+        'csrf_token': '{{ csrf_token() }}'
+      },
+      function (response, status) {
+        window.location.reload();
+      }
+    );
+}
+</script>
+
+
+</section>
+{% endblock %}
