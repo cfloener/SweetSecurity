@@ -7,7 +7,7 @@ from time import sleep
 import hashCheck
 
 def install(chosenInterfaceIP):
-    kibanaLatest = '5.5.1'
+    kibanaLatest = '6.3.0'
 
     cpuArch = os.uname()[4]
     cwd = os.getcwd()
@@ -20,33 +20,33 @@ def install(chosenInterfaceIP):
             kibanaInstalled = True
     if kibanaInstalled == False:
         print "Installing Kibana"
-        print "  Downloading Kibana 5.5.1"
+        print "  Downloading Kibana 6.3.0"
         if cpuArch == 'x86_64':
             os.popen(
-                'sudo wget https://artifacts.elastic.co/downloads/kibana/kibana-5.5.1-linux-x86_64.tar.gz 2>&1').read()
-            if not os.path.isfile('kibana-5.5.1-linux-x86_64.tar.gz'):
+                'sudo wget https://artifacts.elastic.co/downloads/kibana/kibana-6.3.0-linux-x86_64.tar.gz 2>&1').read()
+            if not os.path.isfile('kibana-6.3.0-linux-x86_64.tar.gz'):
                 sys.exit('Error downloading Kibana')
-            if not hashCheck.checkHash('kibana-5.5.1-linux-x86_64.tar.gz'):
+            if not hashCheck.checkHash('kibana-6.3.0-linux-x86_64.tar.gz'):
                 sys.exit('Error downloading kibana, mismatched file hashes')
             print "  Installing Kibana"
-            os.popen('sudo tar -xzf kibana-5.5.1-linux-x86_64.tar.gz').read()
-            shutil.copytree('kibana-5.5.1-linux-x86_64/', '/opt/kibana')
+            os.popen('sudo tar -xzf kibana-6.3.0-linux-x86_64.tar.gz').read()
+            shutil.copytree('kibana-6.3.0-linux-x86_64/', '/opt/kibana')
             print "  Cleaning Up Installation Files"
-            os.remove('kibana-5.5.1-linux-x86_64.tar.gz')
-            shutil.rmtree("kibana-5.5.1-linux-x86_64/")
+            os.remove('kibana-6.3.0-linux-x86_64.tar.gz')
+            shutil.rmtree("kibana-6.3.0-linux-x86_64/")
         else:
             os.popen(
-                'sudo wget https://artifacts.elastic.co/downloads/kibana/kibana-5.5.1-linux-x86.tar.gz 2>&1').read()
-            if not os.path.isfile('kibana-5.5.1-linux-x86.tar.gz'):
+                'sudo wget https://artifacts.elastic.co/downloads/kibana/kibana-6.3.0-linux-x86.tar.gz 2>&1').read()
+            if not os.path.isfile('kibana-6.3.0-linux-x86.tar.gz'):
                 sys.exit('Error downloading Kibana')
-            if not hashCheck.checkHash('kibana-5.5.1-linux-x86.tar.gz'):
+            if not hashCheck.checkHash('kibana-6.3.0-linux-x86.tar.gz'):
                 sys.exit('Error downloading kibana, mismatched file hashes')
             print "  Installing Kibana"
-            os.popen('sudo tar -xzf kibana-5.5.1-linux-x86.tar.gz').read()
-            shutil.copytree('kibana-5.5.1-linux-x86/', '/opt/kibana')
+            os.popen('sudo tar -xzf kibana-6.3.0-linux-x86.tar.gz').read()
+            shutil.copytree('kibana-6.3.0-linux-x86/', '/opt/kibana')
             print "  Cleaning Up Installation Files"
-            os.remove('kibana-5.5.1-linux-x86.tar.gz')
-            shutil.rmtree("kibana-5.5.1-linux-x86/")
+            os.remove('kibana-6.3.0-linux-x86.tar.gz')
+            shutil.rmtree("kibana-6.3.0-linux-x86/")
 
         # Custom stuff for ARM
         if not cpuArch.startswith('x86'):
@@ -94,7 +94,7 @@ def install(chosenInterfaceIP):
     while True:
 
         try:
-            esService.update(index='.kibana', id='5.5.1', doc_type='config', body=body)
+            esService.update(index='.kibana', id='6.3.0', doc_type='config', body=body)
             break
         except:
             print "Waiting for Elasticsearch to start..."
